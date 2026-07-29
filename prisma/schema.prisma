@@ -108,6 +108,9 @@ model Ticket {
   description String
   status      TicketStatus @default(OPEN)
   createdById String
+  deletedAt   DateTime?
+  attachmentUrl  String?
+  attachmentName String?
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
