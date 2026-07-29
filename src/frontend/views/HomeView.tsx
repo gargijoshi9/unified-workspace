@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { LayoutDashboard, Users, ShieldAlert, ArrowRightLeft, LogOut, ArrowRight, Settings } from "lucide-react";
+import Navbar from "@/frontend/components/Navbar";
 
 export default function Home() {
   const { data: session, status, update } = useSession();
@@ -45,8 +46,10 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-zinc-950 flex items-center justify-center p-6 transition-colors duration-300">
-      <div className="w-full max-w-2xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-xl p-8 space-y-6 relative overflow-hidden">
+    <div className="min-h-screen bg-gray-50 dark:bg-zinc-950 flex flex-col transition-colors duration-300">
+      <Navbar />
+      <div className="flex-1 flex items-center justify-center p-6">
+        <div className="w-full max-w-2xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-xl p-8 space-y-6 relative overflow-hidden">
         {/* Decorative backdrop elements */}
         <div className="absolute -top-10 -right-10 w-40 h-40 bg-zinc-100 dark:bg-zinc-800/30 rounded-full blur-3xl pointer-events-none"></div>
         <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-zinc-100 dark:bg-zinc-800/30 rounded-full blur-3xl pointer-events-none"></div>
@@ -166,5 +169,6 @@ export default function Home() {
         )}
       </div>
     </div>
+  </div>
   );
 }

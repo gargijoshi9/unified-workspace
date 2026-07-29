@@ -20,6 +20,7 @@ import {
   ArrowRight,
   GitMerge
 } from "lucide-react";
+import Navbar from "@/frontend/components/Navbar";
 
 interface PRReviewer {
   id: string;
@@ -402,8 +403,10 @@ export default function PRDetail({ params }: { params: Promise<{ prId: string }>
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 p-6 sm:p-10 transition-colors duration-300">
-      <div className="max-w-6xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 flex flex-col transition-colors duration-300">
+      <Navbar />
+      <div className="flex-1 p-6 sm:p-10">
+        <div className="max-w-6xl mx-auto space-y-6">
 
         {/* Back navigation */}
         <div className="flex justify-between items-center">
@@ -800,5 +803,6 @@ export default function PRDetail({ params }: { params: Promise<{ prId: string }>
 
       </div>
     </div>
+  </div>
   );
 }

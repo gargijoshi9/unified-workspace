@@ -20,6 +20,7 @@ model User {
   prsAuthored    PR[]          @relation("PRAuthor")
   reviews        PRReviewer[]
   auditLogs      AuditLog[]
+  digests        Digest[]
 }
 
 model Org {
@@ -38,6 +39,7 @@ model Org {
 
   sharedTickets TicketShare[]   @relation("SharedWithOrg")
   sharedPRs     PRShare[]       @relation("SharedWithOrg")
+  digests       Digest[]
 }
 
 enum Role {
@@ -219,4 +221,16 @@ model AuditLog {
 
   org   Org  @relation(fields: [orgId], references: [id])
   actor User @relation(fields: [actorId], references: [id])
+}
+
+model Digest {
+  id        String   @id @default(cuid())
+  userId    String
+  orgId     String
+  content   String
+  createdAt DateTime @default(now())
+  read      Boolean  @default(false)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  org  Org  @relation(fields: [orgId], references: [id], onDelete: Cascade)
 }

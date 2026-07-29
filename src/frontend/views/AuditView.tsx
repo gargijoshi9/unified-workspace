@@ -19,6 +19,7 @@ import {
   GitPullRequest,
   Key
 } from "lucide-react";
+import Navbar from "@/frontend/components/Navbar";
 
 interface AuditLog {
   id: string;
@@ -226,8 +227,10 @@ export default function AuditView() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 p-6 sm:p-10 transition-colors duration-300">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 flex flex-col transition-colors duration-300">
+      <Navbar />
+      <div className="flex-1 p-6 sm:p-10">
+        <div className="max-w-4xl mx-auto space-y-6">
 
         {/* Navigation / Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-200 dark:border-zinc-800 pb-6">
@@ -441,5 +444,6 @@ export default function AuditView() {
 
       </div>
     </div>
+  </div>
   );
 }
