@@ -7,7 +7,15 @@ export type PermissionAction =
   | "delete_ticket"
   | "comment_ticket"
   | "share_ticket"
-  | "manage_feature_flags";
+  | "manage_feature_flags"
+  | "create_pr"
+  | "read_pr"
+  | "edit_pr"
+  | "assign_reviewer"
+  | "submit_decision"
+  | "merge_pr"
+  | "share_pr"
+  | "view_audit_logs";
 
 interface UserSession {
   id: string;
@@ -22,6 +30,9 @@ interface UserSession {
 interface AuthzContext {
   ticketOwnerOrgId?: string;
   isTicketSharedWithActiveOrg?: boolean;
+  prOwnerOrgId?: string;
+  isPrSharedWithActiveOrg?: boolean;
+  prAuthorId?: string;
 }
 
 export function canPerform(
@@ -85,6 +96,51 @@ export function canPerform(
     case "manage_feature_flags":
       // Restrict to ORG_ADMIN in their active organization
       return role === Role.ORG_ADMIN;
+
+    case "create_pr":
+      // Allowed for ORG_ADMIN or REVIEWER_APPROVER in their active organization
+      return role === Role.ORG_ADMIN || role === Role.REVIEWER_APPROVER;
+
+    case "read_pr":
+      if (!context?.prOwnerOrgId) return false;
+      return (
+        context.prOwnerOrgId === user.activeOrgId ||
+        !!context.isPrSharedWithActiveOrg
+      );
+
+    case "edit_pr":
+      if (!context?.prOwnerOrgId) return false;
+      return (
+        context.prOwnerOrgId === user.activeOrgId &&
+        (role === Role.ORG_ADMIN || context.prAuthorId === user.id)
+      );
+
+    case "assign_reviewer":
+      if (!context?.prOwnerOrgId) return false;
+      return (
+        context.prOwnerOrgId === user.activeOrgId &&
+        (role === Role.ORG_ADMIN || context.prAuthorId === user.id)
+      );
+
+    case "submit_decision":
+      return role === Role.REVIEWER_APPROVER || role === Role.ORG_ADMIN;
+
+    case "merge_pr":
+      if (!context?.prOwnerOrgId) return false;
+      return context.prOwnerOrgId === user.activeOrgId && role === Role.ORG_ADMIN;
+
+    case "share_pr":
+      if (!context?.prOwnerOrgId) return false;
+      return (
+        context.prOwnerOrgId === user.activeOrgId &&
+        (role === Role.ORG_ADMIN || context.prAuthorId === user.id)
+      );
+
+    case "view_audit_logs":
+      return (
+        role === Role.ORG_ADMIN ||
+        role === Role.REVIEWER_APPROVER
+      );
 
     default:
       return false;

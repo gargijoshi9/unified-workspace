@@ -4,7 +4,7 @@ import { useSession, signOut } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { LayoutDashboard, Users, ShieldAlert, ArrowRightLeft, LogOut, ArrowRight } from "lucide-react";
+import { LayoutDashboard, Users, ShieldAlert, ArrowRightLeft, LogOut, ArrowRight, Settings } from "lucide-react";
 
 export default function Home() {
   const { data: session, status, update } = useSession();
@@ -151,6 +151,19 @@ export default function Home() {
             <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
           </Link>
         </div>
+
+        {/* Audit Log link for Admins and Reviewers */}
+        {(activeMembership?.role === "ORG_ADMIN" || activeMembership?.role === "REVIEWER_APPROVER" || activeMembership?.role === "PLATFORM_SUPER_ADMIN") && (
+          <div className="pt-4 flex justify-center">
+            <Link
+              href="/review/audit"
+              className="text-xs text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 transition-colors flex items-center gap-1 font-semibold"
+            >
+              <Settings className="w-3.5 h-3.5" />
+              Go to Security & Audit Console
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   );
