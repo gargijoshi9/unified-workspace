@@ -53,6 +53,7 @@ async function main() {
     await prisma.membership.createMany({
         data: [
             { userId: admin.id, orgId: acme.id, role: Role.ORG_ADMIN },
+            { userId: admin.id, orgId: globex.id, role: Role.CROSS_ORG_GUEST },
             { userId: agent.id, orgId: acme.id, role: Role.SUPPORT_AGENT },
             { userId: reviewer.id, orgId: acme.id, role: Role.REVIEWER_APPROVER },
             { userId: globexAdmin.id, orgId: globex.id, role: Role.ORG_ADMIN },
