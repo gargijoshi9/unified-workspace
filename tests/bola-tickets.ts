@@ -1,6 +1,6 @@
 import "dotenv/config";
-import { prisma } from "../lib/prisma";
-import { canPerform } from "../lib/authz";
+import { prisma } from "../src/backend/lib/prisma";
+import { canPerform } from "../src/backend/lib/authz";
 
 async function verifyReadAccess(email: string, activeOrgId: string, ticketId: string): Promise<string> {
   const user = await prisma.user.findUnique({
@@ -29,7 +29,7 @@ async function verifyReadAccess(email: string, activeOrgId: string, ticketId: st
     return "NOT_FOUND";
   }
 
-  const isShared = ticket.shares.some((s) => s.sharedWithOrgId === activeOrgId);
+  const isShared = ticket.shares.some((s: any) => s.sharedWithOrgId === activeOrgId);
 
   const allowed = canPerform(sessionUser, "read_ticket", {
     ticketOwnerOrgId: ticket.orgId,
@@ -72,7 +72,7 @@ async function verifyEditAccess(email: string, activeOrgId: string, ticketId: st
     return "NOT_FOUND";
   }
 
-  const isShared = ticket.shares.some((s) => s.sharedWithOrgId === activeOrgId);
+  const isShared = ticket.shares.some((s: any) => s.sharedWithOrgId === activeOrgId);
 
   const allowed = canPerform(sessionUser, "edit_ticket", {
     ticketOwnerOrgId: ticket.orgId,
