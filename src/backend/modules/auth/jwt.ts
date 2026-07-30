@@ -9,6 +9,19 @@ export interface JwtCallbackParams {
   session?: { activeOrgId?: string };
 }
 
+// Helper to run Redis calls with a strict 400ms timeout to avoid hanging serverless functions
+async function redisGetWithTimeout(key: string, timeoutMs = 400): Promise<string | null> {
+  try {
+    const result = await Promise.race([
+      redis.get(key),
+      new Promise<null>((_, reject) => setTimeout(() => reject(new Error("Redis timeout")), timeoutMs)),
+    ]);
+    return result;
+  } catch {
+    return null; // Fallback gracefully if Redis call is slow or times out
+  }
+}
+
 export async function handleJwtCallback({ token, user, trigger, session }: JwtCallbackParams): Promise<JWT> {
   // First login: attach memberships + default active org to the token
   if (user) {
@@ -18,14 +31,13 @@ export async function handleJwtCallback({ token, user, trigger, session }: JwtCa
 
     try {
       const redisKey = `user:session-version:${user.id}`;
-      let currentVersion = await redis.get(redisKey);
+      let currentVersion = await redisGetWithTimeout(redisKey);
       if (!currentVersion) {
         currentVersion = "1";
-        await redis.set(redisKey, currentVersion);
+        await redis.set(redisKey, currentVersion).catch(() => {});
       }
       token.sessionVersion = currentVersion;
-    } catch (e) {
-      console.error("Redis error during login token version init:", e);
+    } catch {
       token.sessionVersion = "1";
     }
   }
@@ -39,12 +51,12 @@ export async function handleJwtCallback({ token, user, trigger, session }: JwtCa
   if (token.id) {
     try {
       const redisKey = `user:session-version:${token.id}`;
-      const currentVersion = await redis.get(redisKey);
+      const currentVersion = await redisGetWithTimeout(redisKey);
       if (currentVersion && token.sessionVersion !== currentVersion) {
         token.revoked = true;
       }
-    } catch (e) {
-      console.error("Redis error during jwt verification:", e);
+    } catch {
+      // Degrade gracefully if Redis is unresponsive
     }
   }
 
