@@ -51,7 +51,7 @@ export async function handleJwtCallback({ token, user, trigger, session }: JwtCa
   if (token.id) {
     try {
       const redisKey = `user:session-version:${token.id}`;
-      const currentVersion = await redisGetWithTimeout(redisKey);
+      const currentVersion = await redis.get(redisKey);
       if (currentVersion && token.sessionVersion !== currentVersion) {
         token.revoked = true;
       }
