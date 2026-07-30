@@ -1,4 +1,4 @@
-# Local Setup Guide
+# Local Setup & Installation Guide
 
 Follow these steps to set up and run the Unified Organization Workspace locally on your machine.
 
@@ -7,7 +7,7 @@ Follow these steps to set up and run the Unified Organization Workspace locally 
 ## 1. Prerequisites
 
 - **Node.js**: `v18.x` or higher
-- **npm** or **bun** / **yarn**
+- **npm** / **bun** / **yarn**
 - **PostgreSQL Database** (local Postgres instance or remote PostgreSQL URI like Neon/Supabase)
 - **Redis Server** (local Redis instance or Upstash Redis URL)
 
@@ -34,7 +34,7 @@ Create a `.env` file in the root directory:
 DATABASE_URL="postgresql://username:password@localhost:5432/unified_workspace?sslmode=disable"
 
 # Upstash Redis Connection String (or local redis://127.0.0.1:6379)
-REDIS_URL="rediss://default:your_redis_token@your_redis_host:6379"
+REDIS_URL="redis://default:your_redis_token@your_redis_host:6379"
 
 # NextAuth Configuration
 AUTH_SECRET="your-32-byte-secret-key"

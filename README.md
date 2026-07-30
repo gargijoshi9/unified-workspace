@@ -6,7 +6,21 @@ Built for the **Froncort.AI Full-Stack Architecture Assignment**.
 
 ---
 
-## 🏛️ System Architecture
+## 📚 Submission & Evaluator Quick Links
+
+For quick review and evaluation of the project documentation, click any link below:
+
+| Resource | Description | Direct Link |
+| :--- | :--- | :--- |
+| **🏛️ System Architecture** | 3 Detailed Mermaid Diagrams (System, Session Sync, BOLA Flow) & Control Architecture | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
+| **🛠️ Local Setup Guide** | Step-by-Step Installation, `.env` guide, Prisma migrations, and Seeded Demo Credentials | [docs/SETUP.md](docs/SETUP.md) |
+| **⚠️ Trade-offs & Limitations** | Technical decisions, Monolith vs. Micro-Frontend, and simplified areas | [docs/LIMITATIONS.md](docs/LIMITATIONS.md) |
+| **🚀 Future Roadmap** | Micro-frontend migration plan, edge Redis REST API upgrades, and SSE real-time alerts | [docs/FUTURE_IMPROVEMENTS.md](docs/FUTURE_IMPROVEMENTS.md) |
+| **🤖 LLM / AI Toolchain** | AI pair-programming details, technical reasoning, pros, and cons | [docs/LLM_USAGE.md](docs/LLM_USAGE.md) |
+
+---
+
+## 🏛️ System Architecture Overview
 
 The application enforces a **Feature-Based Scalable Architecture** following strict separation of concerns across standard layer boundaries:
 
@@ -49,40 +63,9 @@ The application enforces a **Feature-Based Scalable Architecture** following str
                   └──────────────────────────────────────────────┘
 ```
 
-### Flow Diagram & Layer Boundaries (Mermaid)
-
-```mermaid
-graph TD
-    Client[Next.js Client UI] -->|HTTP Request| API[Next.js Route Controllers]
-    API -->|Authenticate & Scope| MW[Middleware Pipeline]
-    MW -->|Service Call| SVC[Feature Services Layer]
-    SVC -->|RBAC & Context Check| AUTHZ[Authorization Engine - canPerform]
-    SVC -->|Audit Logging| AUDIT[Audit Log Engine - Append Only]
-    SVC -->|Data Query| REPO[Repository Layer *.repository.ts]
-    REPO -->|ORM Calls| DB[(PostgreSQL Database)]
-    AUTHZ -->|Session Version Check| REDIS[(Redis Cache)]
-
-    subgraph Feature Modules
-        SVC
-        AUTHZ
-        AUDIT
-        REPO
-    end
-```
-
 ---
 
-## 🚀 Key Architectural Highlights
-
-1. **Strict Repository Pattern**: Repositories (`*.repository.ts`) are the **only** files permitted to interact directly with the Prisma Database Client. Services and Controllers contain 0 direct database imports.
-2. **Dynamic Context-Aware Authorization**: Centralized authorization engine (`canPerform`) handling complex BOLA (Broken Object Level Authorization) prevention, cross-org sharing contexts, and static RBAC matrices.
-3. **Redis-Backed Instant Token Revocation**: Multi-device logout-everywhere powered by Redis session version tracking (`user:session-version:${userId}`).
-4. **Append-Only Immutable Audit Trail**: System activity (ticket/PR creation, status edits, approvals, cross-org shares) creates append-only audit entries. Update and delete operations are strictly prohibited.
-5. **AI Progress Digest**: Generates personalized AI digests synthesizing active tickets, overdue items, pending PR reviews, and shared partner items without leaking private cross-tenant data.
-
----
-
-## 🔑 Demo Login Credentials
+## 🔑 Quick Demo Credentials
 
 All seed accounts use the default password: **`password123`**
 
@@ -96,99 +79,34 @@ All seed accounts use the default password: **`password123`**
 
 ---
 
-## 🛠️ Setup & Running Locally
-
-### 1. Prerequisites
-- **Node.js**: `v18+`
-- **PostgreSQL**: Running instance or database connection string
-- **Redis**: Running instance (default: `redis://127.0.0.1:6379`)
-
-### 2. Environment Configuration
-Create a `.env` file in the root directory:
-
-```env
-DATABASE_URL="postgresql://postgres:postgres@localhost:5432/unified_workspace?schema=public"
-REDIS_URL="redis://127.0.0.1:6379"
-NEXTAUTH_SECRET="your-super-secret-key-here"
-NEXTAUTH_URL="http://localhost:3000"
-```
-
-### 3. Database Migration & Seeding
-Initialize the PostgreSQL schema and populate default sample data (Orgs, Users, Memberships, Tickets, PRs, Connections):
-
-```bash
-# Push database schema
-npx prisma db push
-
-# Seed sample data & demo users
-npx prisma db seed
-```
-
-### 4. Start Development Server
-```bash
-npm run dev
-```
-Open [http://localhost:3000](http://localhost:3000) in your browser.
-
----
-
 ## 🧪 Automated Testing Suite
 
 The project includes 7 automated security and integration test suites covering BOLA data isolation, RBAC matrices, session synchronization, token revocation, and audit trail immutability.
 
-### Run All Automated Tests
 ```bash
+# Run all test suites sequentially
 npm test
-```
-
-### Run Individual Test Suites
-```bash
-# 1. RBAC Permissions Matrix Tests
-npx tsx tests/rbac.test.ts
-
-# 2. Session Synchronization & Logout-Everywhere Tests
-npx tsx tests/session-sync.test.ts
-
-# 3. Token Revocation & JWT Lifecycle Tests
-npx tsx tests/token-revocation.test.ts
-
-# 4. Append-Only Audit Trail Integrity Tests
-npx tsx tests/audit.test.ts
-
-# 5. Ticket BOLA Isolation Tests
-npx tsx tests/bola-tickets.ts
-
-# 6. PR BOLA Isolation Tests
-npx tsx tests/bola-prs.ts
-
-# 7. AI Digest Isolation Tests
-npx tsx tests/bola-digests.ts
 ```
 
 ---
 
-## 📁 Repository Directory Structure
+## 📁 Project Directory Structure
 
 ```
 unified-workspace/
+├── docs/                  # Evaluator Documentation Folder
+│   ├── ARCHITECTURE.md    # 3 Mermaid Diagrams & Control Flow
+│   ├── SETUP.md           # Local Installation & Credentials
+│   ├── LIMITATIONS.md     # Architectural Trade-offs
+│   ├── FUTURE_IMPROVEMENTS.md # Roadmap & Micro-Frontend Plan
+│   └── LLM_USAGE.md       # Agentic AI & LLM Toolchain Details
 ├── prisma/
 │   ├── schema.prisma      # Prisma ORM Data Models
 │   └── seed.ts            # Database Seeding Script
 ├── src/
 │   ├── backend/           # Scalable Feature-Based Backend
 │   │   ├── middleware/    # Auth, Tenant, Validation, Audit Middleware
-│   │   ├── modules/       # Domain Feature Modules
-│   │   │   ├── ai/        # AI Progress Digest Generator
-│   │   │   ├── audit/     # Audit Trail Logger & Repository
-│   │   │   ├── auth/      # Authentication, JWT, Session & Permission Matrix
-│   │   │   ├── notification/ # User Digest & Notifications Repository
-│   │   │   ├── organization/ # Organization & Connections Manager
-│   │   │   ├── pr/        # PR Workflow, Versions, Approvals & Repository
-│   │   │   ├── ticket/    # Support Tickets, Comments & Repository
-│   │   │   └── user/      # User Profile & Membership Repository
-│   │   └── shared/        # Shared Prisma & Redis Clients
+│   │   └── modules/       # Domain Feature Modules (auth, pr, ticket, audit, etc.)
 │   └── frontend/          # Next.js UI Application Layer
-│       ├── components/    # Reusable Navigation & UI Components
-│       └── views/         # Dashboard Page Views (Support Hub, PR Console, Audit)
 └── tests/                 # Automated Verification Test Suites
 ```
