@@ -1,8 +1,8 @@
-import { auth } from "@/backend/modules/auth/auth";
+import { auth } from "@/backend/modules/auth/auth.service";
 import { prisma } from "@/backend/shared/prisma";
 import { NextResponse } from "next/server";
 import { ConnectionStatus } from "@prisma/client";
-import { UserSession } from "@/backend/modules/auth/authz";
+import { UserSession } from "@/backend/modules/auth/auth.types";
 
 export async function GET() {
   const session = await auth();

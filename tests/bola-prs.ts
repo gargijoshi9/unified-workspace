@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { prisma } from "../src/backend/shared/prisma";
-import { canPerform } from "../src/backend/modules/auth/authz";
+import { canPerform } from "../src/backend/modules/auth/authorize";
 import { Role, PRStatus } from "@prisma/client";
 
 async function getSessionUser(email: string, activeOrgId: string) {

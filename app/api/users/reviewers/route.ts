@@ -1,4 +1,4 @@
-import { auth } from "@/backend/modules/auth/auth";
+import { auth } from "@/backend/modules/auth/auth.service";
 import { prisma } from "@/backend/shared/prisma";
 import { NextResponse } from "next/server";
 import { Role } from "@prisma/client";

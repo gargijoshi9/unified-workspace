@@ -1,6 +1,7 @@
-import { auth } from "@/backend/modules/auth/auth";
+import { auth } from "@/backend/modules/auth/auth.service";
 import { prisma } from "@/backend/shared/prisma";
-import { canPerform, UserSession } from "@/backend/modules/auth/authz";
+import { canPerform } from "@/backend/modules/auth/authorize";
+import { UserSession } from "@/backend/modules/auth/auth.types";
 import { logAudit } from "@/backend/modules/audit/audit";
 import { NextResponse } from "next/server";
 

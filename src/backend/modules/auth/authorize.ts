@@ -1,41 +1,6 @@
 import { Role } from "@prisma/client";
-
-export type PermissionAction =
-  | "create_ticket"
-  | "read_ticket"
-  | "edit_ticket"
-  | "delete_ticket"
-  | "comment_ticket"
-  | "share_ticket"
-  | "manage_feature_flags"
-  | "create_pr"
-  | "read_pr"
-  | "edit_pr"
-  | "assign_reviewer"
-  | "submit_decision"
-  | "merge_pr"
-  | "share_pr"
-  | "view_audit_logs";
-
-export interface UserSession {
-  id: string;
-  activeOrgId: string;
-  name?: string | null;
-  email?: string | null;
-  memberships: {
-    orgId: string;
-    orgName: string;
-    role: Role;
-  }[];
-}
-
-export interface AuthzContext {
-  ticketOwnerOrgId?: string;
-  isTicketSharedWithActiveOrg?: boolean;
-  prOwnerOrgId?: string;
-  isPrSharedWithActiveOrg?: boolean;
-  prAuthorId?: string;
-}
+import { UserSession, PermissionAction, AuthzContext } from "./auth.types";
+import { hasRolePermission } from "./permissions";
 
 export function canPerform(
   user: UserSession,
@@ -50,13 +15,17 @@ export function canPerform(
   // Platform Super Admins bypass all organization checks for administrative roles
   if (role === Role.PLATFORM_SUPER_ADMIN) return true;
 
+  // 1. Role Check: Check if the role is allowed to perform this action in general
+  if (!hasRolePermission(role, action)) {
+    return false;
+  }
+
+  // 2. Context & Org isolation checks
   switch (action) {
     case "create_ticket":
-      // Allowed for ORG_ADMIN or SUPPORT_AGENT in their active organization
-      return role === Role.ORG_ADMIN || role === Role.SUPPORT_AGENT;
+      return true; // Simple RBAC check passed
 
     case "read_ticket":
-      // Can read if active org is the owner, or if the ticket is shared with their active org
       if (!context?.ticketOwnerOrgId) {
         console.log(`[DEBUG_AUTHZ_READ] context.ticketOwnerOrgId is missing!`);
         return false;
@@ -66,42 +35,27 @@ export function canPerform(
       return isOwner || isShared;
 
     case "comment_ticket":
-      // Allowed for anyone who has read access to the ticket
       if (!context?.ticketOwnerOrgId) return false;
       const canRead = (context.ticketOwnerOrgId === user.activeOrgId) || !!context.isTicketSharedWithActiveOrg;
       return canRead;
 
     case "edit_ticket":
-      // Only owner org's ORG_ADMIN or SUPPORT_AGENT can edit
       if (!context?.ticketOwnerOrgId) return false;
-      return (
-        context.ticketOwnerOrgId === user.activeOrgId &&
-        (role === Role.ORG_ADMIN || role === Role.SUPPORT_AGENT)
-      );
+      return context.ticketOwnerOrgId === user.activeOrgId;
 
     case "delete_ticket":
-      // Restrict to ORG_ADMIN of the owner organization
       if (!context?.ticketOwnerOrgId) return false;
-      return (
-        context.ticketOwnerOrgId === user.activeOrgId &&
-        role === Role.ORG_ADMIN
-      );
+      return context.ticketOwnerOrgId === user.activeOrgId;
 
     case "share_ticket":
-      // ORG_ADMIN and SUPPORT_AGENT of the owner organization can share
       if (!context?.ticketOwnerOrgId) return false;
-      return (
-        context.ticketOwnerOrgId === user.activeOrgId &&
-        (role === Role.ORG_ADMIN || role === Role.SUPPORT_AGENT)
-      );
+      return context.ticketOwnerOrgId === user.activeOrgId;
 
     case "manage_feature_flags":
-      // Restrict to ORG_ADMIN in their active organization
-      return role === Role.ORG_ADMIN;
+      return true; // Simple RBAC check passed
 
     case "create_pr":
-      // Allowed for ORG_ADMIN or REVIEWER_APPROVER in their active organization
-      return role === Role.ORG_ADMIN || role === Role.REVIEWER_APPROVER;
+      return true; // Simple RBAC check passed
 
     case "read_pr":
       if (!context?.prOwnerOrgId) return false;
@@ -125,11 +79,11 @@ export function canPerform(
       );
 
     case "submit_decision":
-      return role === Role.REVIEWER_APPROVER || role === Role.ORG_ADMIN;
+      return true; // Simple RBAC check passed
 
     case "merge_pr":
       if (!context?.prOwnerOrgId) return false;
-      return context.prOwnerOrgId === user.activeOrgId && role === Role.ORG_ADMIN;
+      return context.prOwnerOrgId === user.activeOrgId;
 
     case "share_pr":
       if (!context?.prOwnerOrgId) return false;
@@ -139,10 +93,7 @@ export function canPerform(
       );
 
     case "view_audit_logs":
-      return (
-        role === Role.ORG_ADMIN ||
-        role === Role.REVIEWER_APPROVER
-      );
+      return true; // Simple RBAC check passed
 
     default:
       return false;
