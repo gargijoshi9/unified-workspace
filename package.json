@@ -7,7 +7,8 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "postinstall": "prisma generate",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
     "test": "npx tsx tests/bola-tickets.ts && npx tsx tests/bola-prs.ts && npx tsx tests/bola-digests.ts && npx tsx tests/rbac.test.ts && npx tsx tests/session-sync.test.ts && npx tsx tests/token-revocation.test.ts && npx tsx tests/audit.test.ts"
