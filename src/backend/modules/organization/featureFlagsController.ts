@@ -1,8 +1,6 @@
 import { auth } from "@/backend/modules/auth/auth.service";
-import { prisma } from "@/backend/shared/prisma";
-import { canPerform } from "@/backend/modules/auth/authorize";
 import { UserSession } from "@/backend/modules/auth/auth.types";
-import { logAudit } from "@/backend/modules/audit/audit";
+import { OrganizationService } from "./organizationService";
 import { NextResponse } from "next/server";
 
 export async function GET() {
@@ -12,13 +10,9 @@ export async function GET() {
   }
 
   const user = session.user as UserSession;
-  const activeOrgId = user.activeOrgId;
 
   try {
-    const flags = await prisma.featureFlag.findMany({
-      where: { orgId: activeOrgId },
-    });
-
+    const flags = await OrganizationService.getFeatureFlags(user);
     return NextResponse.json({ flags });
   } catch (err) {
     console.error("GET /api/feature-flags error:", err);
@@ -33,12 +27,6 @@ export async function PATCH(req: Request) {
   }
 
   const user = session.user as UserSession;
-  const activeOrgId = user.activeOrgId;
-
-  // BOLA Check: only Org Admin can manage feature flags
-  if (!canPerform(user, "manage_feature_flags")) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
 
   try {
     const { key, enabled } = await req.json();
@@ -47,34 +35,13 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ error: "Missing key or enabled state" }, { status: 400 });
     }
 
-    const flag = await prisma.featureFlag.upsert({
-      where: {
-        orgId_key: {
-          orgId: activeOrgId,
-          key,
-        },
-      },
-      update: {
-        enabled,
-      },
-      create: {
-        orgId: activeOrgId,
-        key,
-        enabled,
-      },
-    });
+    const result = await OrganizationService.toggleFeatureFlag(user, key, enabled);
 
-    // Log the audit event in the active organization
-    await logAudit(
-      user.id,
-      activeOrgId,
-      "feature_flag.toggled",
-      "FeatureFlag",
-      flag.id,
-      { key, enabled }
-    );
+    if (result.error === "Forbidden") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
 
-    return NextResponse.json({ flag });
+    return NextResponse.json({ flag: result.flag });
   } catch (err) {
     console.error("PATCH /api/feature-flags error:", err);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

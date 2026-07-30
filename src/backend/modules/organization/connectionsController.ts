@@ -1,8 +1,7 @@
 import { auth } from "@/backend/modules/auth/auth.service";
-import { prisma } from "@/backend/shared/prisma";
-import { NextResponse } from "next/server";
-import { ConnectionStatus } from "@prisma/client";
 import { UserSession } from "@/backend/modules/auth/auth.types";
+import { OrganizationService } from "./organizationService";
+import { NextResponse } from "next/server";
 
 export async function GET() {
   const session = await auth();
@@ -11,28 +10,10 @@ export async function GET() {
   }
 
   const user = session.user as UserSession;
-  const activeOrgId = user.activeOrgId;
 
   try {
-    const connections = await prisma.orgConnection.findMany({
-      where: {
-        status: ConnectionStatus.APPROVED,
-        OR: [
-          { orgAId: activeOrgId },
-          { orgBId: activeOrgId },
-        ],
-      },
-      include: {
-        orgA: { select: { id: true, name: true } },
-        orgB: { select: { id: true, name: true } },
-      },
-    });
-
-    const connectedOrgs = connections.map((conn) => {
-      return conn.orgAId === activeOrgId ? conn.orgB : conn.orgA;
-    });
-
-    return NextResponse.json({ orgs: connectedOrgs });
+    const orgs = await OrganizationService.getConnections(user);
+    return NextResponse.json({ orgs });
   } catch (err) {
     console.error("GET /api/connections/orgs error:", err);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
