@@ -12,9 +12,9 @@ For quick review and evaluation of the project documentation, click any link bel
 
 | Resource | Description | Direct Link |
 | :--- | :--- | :--- |
-| **🏛️ System Architecture** | 3 Detailed Mermaid Diagrams (System, Session Sync, BOLA Flow) & Control Architecture | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
-| **🛠️ Local Setup Guide** | Step-by-Step Installation, `.env` guide, Prisma migrations, and Seeded Demo Credentials | [docs/SETUP.md](docs/SETUP.md) |
-| **⚠️ Trade-offs & Limitations** | Technical decisions, Monolith vs. Micro-Frontend, and simplified areas | [docs/LIMITATIONS.md](docs/LIMITATIONS.md) |
+| **🏛️ System Architecture** | 3 Detailed Mermaid Diagrams (System, Session Sync, BOLA Flow) & Control Architecture | [docs/ARCHITECTURE.md](docs/architecture.md) |
+| **🛠️ Local Setup Guide** | Step-by-Step Installation, `.env` guide, Prisma migrations, and Seeded Demo Credentials | [docs/SETUP.md](docs/setup.md) |
+| **⚠️ Trade-offs & Limitations** | Technical decisions, Monolith vs. Micro-Frontend, and simplified areas | [docs/LIMITATIONS.md](docs/limitations.md) |
 | **🚀 Future Roadmap** | Micro-frontend migration plan, edge Redis REST API upgrades, and SSE real-time alerts | [docs/FUTURE_IMPROVEMENTS.md](docs/FUTURE_IMPROVEMENTS.md) |
 | **🤖 LLM / AI Toolchain** | AI pair-programming details, technical reasoning, pros, and cons | [docs/LLM_USAGE.md](docs/LLM_USAGE.md) |
 
