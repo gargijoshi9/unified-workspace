@@ -9,8 +9,8 @@ export interface JwtCallbackParams {
   session?: { activeOrgId?: string };
 }
 
-// Helper to run Redis calls with a strict 400ms timeout to avoid hanging serverless functions
-async function redisGetWithTimeout(key: string, timeoutMs = 400): Promise<string | null> {
+// Helper to run Redis calls with a strict 300ms timeout to avoid hanging Vercel serverless functions
+async function redisGetWithTimeout(key: string, timeoutMs = 300): Promise<string | null> {
   try {
     const result = await Promise.race([
       redis.get(key),
@@ -51,7 +51,7 @@ export async function handleJwtCallback({ token, user, trigger, session }: JwtCa
   if (token.id) {
     try {
       const redisKey = `user:session-version:${token.id}`;
-      const currentVersion = await redis.get(redisKey);
+      const currentVersion = await redisGetWithTimeout(redisKey);
       if (currentVersion && token.sessionVersion !== currentVersion) {
         token.revoked = true;
       }
