@@ -35,4 +35,12 @@ export class AuditRepository {
       select: { id: true, name: true, email: true },
     });
   }
+
+  static async update(): Promise<never> {
+    throw new Error("Audit logs are append-only and cannot be updated.");
+  }
+
+  static async delete(): Promise<never> {
+    throw new Error("Audit logs are append-only and cannot be deleted.");
+  }
 }

@@ -7,6 +7,7 @@ export class TicketsRepository {
       where,
       include: {
         org: { select: { name: true } },
+        createdBy: { select: { id: true, name: true, email: true } },
         shares: true,
       },
       orderBy: { createdAt: "desc" },
@@ -14,16 +15,39 @@ export class TicketsRepository {
   }
 
   static async findUnique(id: string) {
-    return prisma.ticket.findUnique({
+    const ticket = await prisma.ticket.findUnique({
       where: { id },
       include: {
         org: { select: { id: true, name: true } },
+        createdBy: { select: { id: true, name: true, email: true } },
         shares: true,
         comments: {
           orderBy: { createdAt: "asc" },
         },
       },
     });
+
+    if (!ticket) return null;
+
+    const authorIds = Array.from(new Set(ticket.comments.map((c) => c.authorId)));
+    const authors = authorIds.length > 0
+      ? await prisma.user.findMany({
+          where: { id: { in: authorIds } },
+          select: { id: true, name: true, email: true },
+        })
+      : [];
+
+    const authorMap = new Map(authors.map((u) => [u.id, u]));
+
+    const commentsWithAuthor = ticket.comments.map((c) => ({
+      ...c,
+      author: authorMap.get(c.authorId) || { name: "Unknown User", email: "" },
+    }));
+
+    return {
+      ...ticket,
+      comments: commentsWithAuthor,
+    };
   }
 
   static async create(data: Prisma.TicketUncheckedCreateInput) {
