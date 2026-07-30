@@ -1,16 +1,16 @@
 import { auth } from "@/backend/auth";
 import { prisma } from "@/backend/lib/prisma";
-import { canPerform } from "@/backend/lib/authz";
+import { canPerform, UserSession } from "@/backend/lib/authz";
 import { logAudit } from "@/backend/lib/audit";
 import { NextResponse } from "next/server";
 
 export async function GET() {
   const session = await auth();
-  if (!session || !(session.user as any).activeOrgId) {
+  if (!session || !session.user?.activeOrgId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const user = session.user as any;
+  const user = session.user as UserSession;
   const activeOrgId = user.activeOrgId;
 
   try {
@@ -27,15 +27,15 @@ export async function GET() {
 
 export async function PATCH(req: Request) {
   const session = await auth();
-  if (!session || !(session.user as any).activeOrgId) {
+  if (!session || !session.user?.activeOrgId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const user = session.user as any;
+  const user = session.user as UserSession;
   const activeOrgId = user.activeOrgId;
 
   // BOLA Check: only Org Admin can manage feature flags
-  if (!canPerform(user, "manage_feature_flags", activeOrgId)) {
+  if (!canPerform(user, "manage_feature_flags")) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

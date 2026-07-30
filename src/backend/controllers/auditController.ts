@@ -1,15 +1,16 @@
 import { auth } from "@/backend/auth";
 import { prisma } from "@/backend/lib/prisma";
-import { canPerform } from "@/backend/lib/authz";
+import { canPerform, UserSession } from "@/backend/lib/authz";
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 
 export async function getAuditLogs(req: Request) {
   const session = await auth();
-  if (!session || !(session.user as any).activeOrgId) {
+  if (!session || !session.user?.activeOrgId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const user = session.user as any;
+  const user = session.user as UserSession;
   const activeOrgId = user.activeOrgId;
 
   // Authorization check
@@ -26,16 +27,16 @@ export async function getAuditLogs(req: Request) {
     const filterEndDate = searchParams.get("endDate");
 
     // BOLA Check: Verify user has membership in target orgId
-    const hasMembership = user.memberships.some((m: any) => m.orgId === queryOrgId);
+    const hasMembership = user.memberships.some((m) => m.orgId === queryOrgId);
     if (!hasMembership && user.activeOrgId !== queryOrgId) {
       // Platform Super Admin bypasses membership check
-      const activeMembership = user.memberships.find((m: any) => m.orgId === user.activeOrgId);
+      const activeMembership = user.memberships.find((m) => m.orgId === user.activeOrgId);
       if (activeMembership?.role !== "PLATFORM_SUPER_ADMIN") {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
     }
 
-    const whereClause: any = { orgId: queryOrgId };
+    const whereClause: Prisma.AuditLogWhereInput = { orgId: queryOrgId };
 
     if (filterActorId) {
       whereClause.actorId = filterActorId;

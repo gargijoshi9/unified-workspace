@@ -1,6 +1,6 @@
 import { auth } from "@/backend/auth";
 import { prisma } from "@/backend/lib/prisma";
-import { canPerform } from "@/backend/lib/authz";
+import { canPerform, UserSession } from "@/backend/lib/authz";
 import { logAudit } from "@/backend/lib/audit";
 import { NextResponse } from "next/server";
 import { ConnectionStatus, PRStatus, Role } from "@prisma/client";
@@ -8,11 +8,11 @@ import { ConnectionStatus, PRStatus, Role } from "@prisma/client";
 // GET /api/prs
 export async function getPRs() {
   const session = await auth();
-  if (!session || !(session.user as any).activeOrgId) {
+  if (!session || !session.user?.activeOrgId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const user = session.user as any;
+  const user = session.user as UserSession;
   const activeOrgId = user.activeOrgId;
 
   try {
@@ -56,14 +56,14 @@ export async function getPRs() {
 // POST /api/prs
 export async function createPR(req: Request) {
   const session = await auth();
-  if (!session || !(session.user as any).activeOrgId) {
+  if (!session || !session.user?.activeOrgId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const user = session.user as any;
+  const user = session.user as UserSession;
   const activeOrgId = user.activeOrgId;
 
-  if (!canPerform(user, "create_pr", activeOrgId)) {
+  if (!canPerform(user, "create_pr")) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -107,12 +107,12 @@ export async function getPR(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth();
-  if (!session || !(session.user as any).activeOrgId) {
+  if (!session || !session.user?.activeOrgId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { id } = await params;
-  const user = session.user as any;
+  const user = session.user as UserSession;
   const activeOrgId = user.activeOrgId;
 
   try {
@@ -155,12 +155,12 @@ export async function updatePR(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth();
-  if (!session || !(session.user as any).activeOrgId) {
+  if (!session || !session.user?.activeOrgId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { id } = await params;
-  const user = session.user as any;
+  const user = session.user as UserSession;
   const activeOrgId = user.activeOrgId;
 
   try {
@@ -173,7 +173,12 @@ export async function updatePR(
       return NextResponse.json({ error: "PR not found" }, { status: 404 });
     }
 
+    const isOwner = pr.orgId === activeOrgId;
     const isShared = pr.shares.some((s) => s.sharedWithOrgId === activeOrgId);
+
+    if (!isOwner && !isShared) {
+      return NextResponse.json({ error: "PR not found" }, { status: 404 });
+    }
 
     if (
       !canPerform(user, "edit_pr", {
@@ -264,20 +269,28 @@ export async function assignReviewers(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth();
-  if (!session || !(session.user as any).activeOrgId) {
+  if (!session || !session.user?.activeOrgId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { id } = await params;
-  const user = session.user as any;
+  const user = session.user as UserSession;
   const activeOrgId = user.activeOrgId;
 
   try {
     const pr = await prisma.pR.findUnique({
       where: { id },
+      include: { shares: true },
     });
 
     if (!pr) {
+      return NextResponse.json({ error: "PR not found" }, { status: 404 });
+    }
+
+    const isOwner = pr.orgId === activeOrgId;
+    const isShared = pr.shares.some((s) => s.sharedWithOrgId === activeOrgId);
+
+    if (!isOwner && !isShared) {
       return NextResponse.json({ error: "PR not found" }, { status: 404 });
     }
 
@@ -352,21 +365,28 @@ export async function submitDecision(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth();
-  if (!session || !(session.user as any).activeOrgId) {
+  if (!session || !session.user?.activeOrgId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { id } = await params;
-  const user = session.user as any;
+  const user = session.user as UserSession;
   const activeOrgId = user.activeOrgId;
 
   try {
     const pr = await prisma.pR.findUnique({
       where: { id },
-      include: { reviewers: true },
+      include: { reviewers: true, shares: true },
     });
 
     if (!pr) {
+      return NextResponse.json({ error: "PR not found" }, { status: 404 });
+    }
+
+    const isOwner = pr.orgId === activeOrgId;
+    const isShared = pr.shares.some((s) => s.sharedWithOrgId === activeOrgId);
+
+    if (!isOwner && !isShared) {
       return NextResponse.json({ error: "PR not found" }, { status: 404 });
     }
 
@@ -458,20 +478,28 @@ export async function mergePR(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth();
-  if (!session || !(session.user as any).activeOrgId) {
+  if (!session || !session.user?.activeOrgId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { id } = await params;
-  const user = session.user as any;
+  const user = session.user as UserSession;
   const activeOrgId = user.activeOrgId;
 
   try {
     const pr = await prisma.pR.findUnique({
       where: { id },
+      include: { shares: true },
     });
 
     if (!pr) {
+      return NextResponse.json({ error: "PR not found" }, { status: 404 });
+    }
+
+    const isOwner = pr.orgId === activeOrgId;
+    const isShared = pr.shares.some((s) => s.sharedWithOrgId === activeOrgId);
+
+    if (!isOwner && !isShared) {
       return NextResponse.json({ error: "PR not found" }, { status: 404 });
     }
 
@@ -514,20 +542,28 @@ export async function sharePR(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth();
-  if (!session || !(session.user as any).activeOrgId) {
+  if (!session || !session.user?.activeOrgId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { id: prId } = await params;
-  const user = session.user as any;
+  const user = session.user as UserSession;
   const activeOrgId = user.activeOrgId;
 
   try {
     const pr = await prisma.pR.findUnique({
       where: { id: prId },
+      include: { shares: true },
     });
 
     if (!pr) {
+      return NextResponse.json({ error: "PR not found" }, { status: 404 });
+    }
+
+    const isOwner = pr.orgId === activeOrgId;
+    const isShared = pr.shares.some((s) => s.sharedWithOrgId === activeOrgId);
+
+    if (!isOwner && !isShared) {
       return NextResponse.json({ error: "PR not found" }, { status: 404 });
     }
 
@@ -601,20 +637,28 @@ export async function unsharePR(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth();
-  if (!session || !(session.user as any).activeOrgId) {
+  if (!session || !session.user?.activeOrgId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { id: prId } = await params;
-  const user = session.user as any;
+  const user = session.user as UserSession;
   const activeOrgId = user.activeOrgId;
 
   try {
     const pr = await prisma.pR.findUnique({
       where: { id: prId },
+      include: { shares: true },
     });
 
     if (!pr) {
+      return NextResponse.json({ error: "PR not found" }, { status: 404 });
+    }
+
+    const isOwner = pr.orgId === activeOrgId;
+    const isShared = pr.shares.some((s) => s.sharedWithOrgId === activeOrgId);
+
+    if (!isOwner && !isShared) {
       return NextResponse.json({ error: "PR not found" }, { status: 404 });
     }
 

@@ -1,6 +1,6 @@
 import { auth } from "@/backend/auth";
 import { prisma } from "@/backend/lib/prisma";
-import { canPerform } from "@/backend/lib/authz";
+import { canPerform, UserSession } from "@/backend/lib/authz";
 import { logAudit } from "@/backend/lib/audit";
 import { NextResponse } from "next/server";
 import { ConnectionStatus } from "@prisma/client";
@@ -8,11 +8,11 @@ import { ConnectionStatus } from "@prisma/client";
 // GET /api/tickets
 export async function getTickets() {
   const session = await auth();
-  if (!session || !(session.user as any).activeOrgId) {
+  if (!session || !session.user?.activeOrgId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const user = session.user as any;
+  const user = session.user as UserSession;
   const activeOrgId = user.activeOrgId;
 
   try {
@@ -69,15 +69,15 @@ export async function getTickets() {
 // POST /api/tickets
 export async function createTicket(req: Request) {
   const session = await auth();
-  if (!session || !(session.user as any).activeOrgId) {
+  if (!session || !session.user?.activeOrgId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const user = session.user as any;
+  const user = session.user as UserSession;
   const activeOrgId = user.activeOrgId;
 
   // Authorization Check
-  if (!canPerform(user, "create_ticket", activeOrgId)) {
+  if (!canPerform(user, "create_ticket")) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -121,12 +121,12 @@ export async function getTicket(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth();
-  if (!session || !(session.user as any).activeOrgId) {
+  if (!session || !session.user?.activeOrgId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { id } = await params;
-  const user = session.user as any;
+  const user = session.user as UserSession;
   const activeOrgId = user.activeOrgId;
 
   try {
@@ -195,12 +195,12 @@ export async function updateTicket(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth();
-  if (!session || !(session.user as any).activeOrgId) {
+  if (!session || !session.user?.activeOrgId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { id } = await params;
-  const user = session.user as any;
+  const user = session.user as UserSession;
   const activeOrgId = user.activeOrgId;
 
   try {
@@ -213,9 +213,15 @@ export async function updateTicket(
       return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
     }
 
+    const isOwner = ticket.orgId === activeOrgId;
     const isShared = ticket.shares.some((s) => s.sharedWithOrgId === activeOrgId);
 
-    // BOLA Check
+    // BOLA Check: If not same org and not shared, return 404
+    if (!isOwner && !isShared) {
+      return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
+    }
+
+    // RBAC Check
     if (
       !canPerform(user, "edit_ticket", {
         ticketOwnerOrgId: ticket.orgId,
@@ -275,24 +281,33 @@ export async function deleteTicket(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth();
-  if (!session || !(session.user as any).activeOrgId) {
+  if (!session || !session.user?.activeOrgId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { id } = await params;
-  const user = session.user as any;
+  const user = session.user as UserSession;
   const activeOrgId = user.activeOrgId;
 
   try {
     const ticket = await prisma.ticket.findUnique({
       where: { id },
+      include: { shares: true },
     });
 
     if (!ticket || ticket.deletedAt !== null) {
       return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
     }
 
-    // BOLA Check
+    const isOwner = ticket.orgId === activeOrgId;
+    const isShared = ticket.shares.some((s) => s.sharedWithOrgId === activeOrgId);
+
+    // BOLA Check: If not same org and not shared, return 404
+    if (!isOwner && !isShared) {
+      return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
+    }
+
+    // RBAC Check
     if (
       !canPerform(user, "delete_ticket", {
         ticketOwnerOrgId: ticket.orgId,
@@ -330,24 +345,33 @@ export async function shareTicket(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth();
-  if (!session || !(session.user as any).activeOrgId) {
+  if (!session || !session.user?.activeOrgId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { id: ticketId } = await params;
-  const user = session.user as any;
+  const user = session.user as UserSession;
   const activeOrgId = user.activeOrgId;
 
   try {
     const ticket = await prisma.ticket.findUnique({
       where: { id: ticketId },
+      include: { shares: true },
     });
 
     if (!ticket || ticket.deletedAt !== null) {
       return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
     }
 
-    // BOLA Check
+    const isOwner = ticket.orgId === activeOrgId;
+    const isShared = ticket.shares.some((s) => s.sharedWithOrgId === activeOrgId);
+
+    // BOLA Check: If not same org and not shared, return 404
+    if (!isOwner && !isShared) {
+      return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
+    }
+
+    // RBAC Check
     if (
       !canPerform(user, "share_ticket", {
         ticketOwnerOrgId: ticket.orgId,
@@ -418,24 +442,33 @@ export async function unshareTicket(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth();
-  if (!session || !(session.user as any).activeOrgId) {
+  if (!session || !session.user?.activeOrgId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { id: ticketId } = await params;
-  const user = session.user as any;
+  const user = session.user as UserSession;
   const activeOrgId = user.activeOrgId;
 
   try {
     const ticket = await prisma.ticket.findUnique({
       where: { id: ticketId },
+      include: { shares: true },
     });
 
     if (!ticket || ticket.deletedAt !== null) {
       return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
     }
 
-    // BOLA Check
+    const isOwner = ticket.orgId === activeOrgId;
+    const isShared = ticket.shares.some((s) => s.sharedWithOrgId === activeOrgId);
+
+    // BOLA Check: If not same org and not shared, return 404
+    if (!isOwner && !isShared) {
+      return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
+    }
+
+    // RBAC Check
     if (
       !canPerform(user, "share_ticket", {
         ticketOwnerOrgId: ticket.orgId,
@@ -482,12 +515,12 @@ export async function createComment(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth();
-  if (!session || !(session.user as any).activeOrgId) {
+  if (!session || !session.user?.activeOrgId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { id: ticketId } = await params;
-  const user = session.user as any;
+  const user = session.user as UserSession;
   const activeOrgId = user.activeOrgId;
 
   try {
@@ -500,7 +533,13 @@ export async function createComment(
       return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
     }
 
+    const isOwner = ticket.orgId === activeOrgId;
     const isShared = ticket.shares.some((s) => s.sharedWithOrgId === activeOrgId);
+
+    // BOLA Check: If not same org and not shared, return 404
+    if (!isOwner && !isShared) {
+      return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
+    }
 
     // BOLA check: Must have read/comment permission on the ticket
     if (

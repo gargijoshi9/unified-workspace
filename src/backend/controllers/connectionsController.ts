@@ -2,14 +2,15 @@ import { auth } from "@/backend/auth";
 import { prisma } from "@/backend/lib/prisma";
 import { NextResponse } from "next/server";
 import { ConnectionStatus } from "@prisma/client";
+import { UserSession } from "@/backend/lib/authz";
 
 export async function GET() {
   const session = await auth();
-  if (!session || !(session.user as any).activeOrgId) {
+  if (!session || !session.user?.activeOrgId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const user = session.user as any;
+  const user = session.user as UserSession;
   const activeOrgId = user.activeOrgId;
 
   try {

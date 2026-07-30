@@ -17,9 +17,11 @@ export type PermissionAction =
   | "share_pr"
   | "view_audit_logs";
 
-interface UserSession {
+export interface UserSession {
   id: string;
   activeOrgId: string;
+  name?: string | null;
+  email?: string | null;
   memberships: {
     orgId: string;
     orgName: string;
@@ -27,7 +29,7 @@ interface UserSession {
   }[];
 }
 
-interface AuthzContext {
+export interface AuthzContext {
   ticketOwnerOrgId?: string;
   isTicketSharedWithActiveOrg?: boolean;
   prOwnerOrgId?: string;
