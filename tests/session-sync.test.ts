@@ -16,10 +16,10 @@ async function simulateLogin(email: string) {
   token = await handleJwtCallback({ token, user: user as any });
 
   // Resolve session for user
-  const baseSession: Session = {
-    user: { id: "", email: "", name: "", image: "" },
+  const baseSession = {
+    user: { id: "", email: "", name: "", image: "", activeOrgId: null, memberships: [] },
     expires: new Date(Date.now() + 86400 * 1000).toISOString(),
-  };
+  } as unknown as Session;
 
   const activeSession = await handleSessionCallback({ session: baseSession, token });
   return { user, token, session: activeSession };
@@ -29,10 +29,10 @@ async function validateSessionToken(token: JWT) {
   // Pass token through JWT callback (simulating NextAuth request validation)
   const updatedToken = await handleJwtCallback({ token: { ...token } });
 
-  const baseSession: Session = {
-    user: { id: "", email: "", name: "", image: "" },
+  const baseSession = {
+    user: { id: "", email: "", name: "", image: "", activeOrgId: null, memberships: [] },
     expires: new Date(Date.now() + 86400 * 1000).toISOString(),
-  };
+  } as unknown as Session;
 
   const resolvedSession = await handleSessionCallback({ session: baseSession, token: updatedToken });
 

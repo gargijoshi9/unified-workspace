@@ -29,10 +29,10 @@ async function verifyAndResolveSession(token: JWT): Promise<UserSession | null> 
     return null;
   }
 
-  const baseSession: Session = {
-    user: { id: "", email: "", name: "", image: "" },
+  const baseSession = {
+    user: { id: "", email: "", name: "", image: "", activeOrgId: null, memberships: [] },
     expires: new Date(Date.now() + 86400 * 1000).toISOString(),
-  };
+  } as unknown as Session;
 
   const session = await handleSessionCallback({ session: baseSession, token: verifiedToken });
 
@@ -59,7 +59,7 @@ async function accessProtectedEndpoint(token: JWT, endpoint: "/api/tickets" | "/
       const prs = await PRsService.getPRs(sessionUser);
       return { status: 200, body: { prs } };
     } else if (endpoint === "/api/audit") {
-      const audit = await AuditService.getAuditLogs(sessionUser, sessionUser.activeOrgId);
+      const audit = await AuditService.getAuditLogs(sessionUser, sessionUser.activeOrgId || "", null, null, null, null);
       if ("error" in audit) return { status: 403, body: { error: audit.error } };
       return { status: 200, body: audit };
     }

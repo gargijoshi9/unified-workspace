@@ -137,7 +137,7 @@ export default function Navbar() {
   const isViewAuditAllowed = userRole === "ORG_ADMIN" || userRole === "REVIEWER_APPROVER" || userRole === "PLATFORM_SUPER_ADMIN";
 
   return (
-    <nav className="sticky top-0 z-40 w-full bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border-b border-gray-200 dark:border-zinc-800 transition-colors duration-300">
+    <nav className="sticky top-0 z-40 w-full bg-[#0F1115]/90 backdrop-blur-md border-b border-[rgba(207,208,205,0.15)] transition-colors duration-300">
       <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
         
         {/* Left Side: Brand Logo & Links */}
