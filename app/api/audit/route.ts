@@ -1,1 +1,1 @@
-export { getAuditLogs as GET } from "@/backend/controllers/auditController";
+export { getAuditLogs as GET } from "@/backend/modules/audit/auditController";

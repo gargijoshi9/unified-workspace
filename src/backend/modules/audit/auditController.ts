@@ -1,6 +1,6 @@
-import { auth } from "@/backend/auth";
-import { prisma } from "@/backend/lib/prisma";
-import { canPerform, UserSession } from "@/backend/lib/authz";
+import { auth } from "@/backend/modules/auth/auth";
+import { prisma } from "@/backend/shared/prisma";
+import { canPerform, UserSession } from "@/backend/modules/auth/authz";
 import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 

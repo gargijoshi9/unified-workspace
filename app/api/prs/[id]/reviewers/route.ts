@@ -1,1 +1,1 @@
-export { assignReviewers as POST } from "@/backend/controllers/prsController";
+export { assignReviewers as POST } from "@/backend/modules/pr/prsController";

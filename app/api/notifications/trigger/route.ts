@@ -1,1 +1,1 @@
-export { triggerManualDigest as POST } from "@/backend/controllers/digestController";
+export { triggerManualDigest as POST } from "@/backend/modules/notification/digestController";

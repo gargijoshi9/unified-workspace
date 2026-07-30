@@ -1,8 +1,8 @@
-import NextAuth from "next-auth";
+import NextAuth, { Session } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
-import { prisma } from "@/backend/lib/prisma";
-import { redis } from "@/backend/lib/redis";
+import { prisma } from "@/backend/shared/prisma";
+import { redis } from "@/backend/shared/redis";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
     session: { strategy: "jwt" },
@@ -35,7 +35,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     id: user.id,
                     email: user.email,
                     name: user.name,
-                    memberships: user.memberships.map((m: any) => ({
+                    memberships: user.memberships.map((m) => ({
                         orgId: m.orgId,
                         orgName: m.org.name,
                         role: m.role,
@@ -49,8 +49,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             // First login: attach memberships + default active org to the token
             if (user) {
                 token.id = user.id;
-                token.memberships = (user as any).memberships;
-                token.activeOrgId = (user as any).memberships[0]?.orgId ?? null;
+                token.memberships = user.memberships;
+                token.activeOrgId = user.memberships?.[0]?.orgId ?? null;
 
                 try {
                     const redisKey = `user:session-version:${user.id}`;
@@ -90,21 +90,27 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             if (token?.revoked) {
                 return {
                     ...session,
-                    user: null as any,
+                    user: null as unknown as typeof session.user,
                     error: "RevokedSession",
-                } as any;
+                } as unknown as Session;
             }
             // Expose id, memberships, active org to the client via useSession()
-            (session.user as any).id = token.id;
-            (session.user as any).memberships = token.memberships;
-            (session.user as any).activeOrgId = token.activeOrgId;
+            if (token?.id) {
+                session.user.id = token.id as string;
+            }
+            if (token?.memberships) {
+                session.user.memberships = token.memberships as typeof session.user.memberships;
+            }
+            if (token?.activeOrgId !== undefined) {
+                session.user.activeOrgId = token.activeOrgId as string | null;
+            }
             return session;
         },
     },
     events: {
         async signOut(message) {
             try {
-                const token = (message as any).token;
+                const token = (message as { token?: { id?: string } }).token;
                 if (token?.id) {
                     const redisKey = `user:session-version:${token.id}`;
                     await redis.incr(redisKey);

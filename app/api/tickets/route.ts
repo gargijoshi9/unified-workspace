@@ -1,1 +1,1 @@
-export { getTickets as GET, createTicket as POST } from "@/backend/controllers/ticketsController";
+export { getTickets as GET, createTicket as POST } from "@/backend/modules/ticket/ticketsController";

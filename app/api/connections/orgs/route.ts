@@ -1,1 +1,1 @@
-export { GET } from "@/backend/controllers/connectionsController";
+export { GET } from "@/backend/modules/organization/connectionsController";

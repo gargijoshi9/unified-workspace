@@ -1,1 +1,1 @@
-export { handlers, signIn, signOut, auth } from "@/src/backend/auth";
+export { handlers, signIn, signOut, auth } from "@/src/backend/modules/auth/auth";

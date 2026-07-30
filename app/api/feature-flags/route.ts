@@ -1,1 +1,1 @@
-export { GET, PATCH } from "@/backend/controllers/featureFlagsController";
+export { GET, PATCH } from "@/backend/modules/organization/featureFlagsController";

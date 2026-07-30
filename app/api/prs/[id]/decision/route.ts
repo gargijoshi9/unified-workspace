@@ -1,1 +1,1 @@
-export { submitDecision as POST } from "@/backend/controllers/prsController";
+export { submitDecision as POST } from "@/backend/modules/pr/prsController";

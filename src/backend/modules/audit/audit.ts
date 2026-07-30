@@ -1,4 +1,5 @@
-import { prisma } from "@/backend/lib/prisma";
+import { prisma } from "@/backend/shared/prisma";
+import { Prisma } from "@prisma/client";
 
 export async function logAudit(
   actorId: string,
@@ -6,7 +7,7 @@ export async function logAudit(
   action: string,
   entityType: string,
   entityId: string,
-  metadata?: any
+  metadata?: Prisma.InputJsonValue
 ) {
   try {
     await prisma.auditLog.create({

@@ -1,6 +1,6 @@
 import "dotenv/config";
-import { prisma } from "../src/backend/lib/prisma";
-import { generateDigestForUser } from "../src/backend/lib/digest";
+import { prisma } from "../src/backend/shared/prisma";
+import { generateDigestForUser } from "../src/backend/modules/ai/digest";
 import { Role, TicketStatus, PRStatus } from "@prisma/client";
 
 async function runTests() {

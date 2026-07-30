@@ -1,6 +1,6 @@
-import { auth } from "@/backend/auth";
-import { prisma } from "@/backend/lib/prisma";
-import { generateDigestForUser } from "@/backend/lib/digest";
+import { auth } from "@/backend/modules/auth/auth";
+import { prisma } from "@/backend/shared/prisma";
+import { generateDigestForUser } from "@/backend/modules/ai/digest";
 import { NextResponse } from "next/server";
 
 // GET /api/notifications

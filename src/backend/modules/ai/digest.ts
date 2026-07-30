@@ -1,4 +1,4 @@
-import { prisma } from "./prisma";
+import { prisma } from "@/backend/shared/prisma";
 
 /**
  * Generates an AI-templated digest for a specific user within an organization

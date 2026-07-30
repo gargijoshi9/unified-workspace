@@ -1,1 +1,1 @@
-export { shareTicket as POST, unshareTicket as DELETE } from "@/backend/controllers/ticketsController";
+export { shareTicket as POST, unshareTicket as DELETE } from "@/backend/modules/ticket/ticketsController";

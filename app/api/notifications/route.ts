@@ -1,1 +1,1 @@
-export { getNotifications as GET, markAsRead as POST } from "@/backend/controllers/digestController";
+export { getNotifications as GET, markAsRead as POST } from "@/backend/modules/notification/digestController";

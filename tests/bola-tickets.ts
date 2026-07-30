@@ -1,6 +1,6 @@
 import "dotenv/config";
-import { prisma } from "../src/backend/lib/prisma";
-import { canPerform } from "../src/backend/lib/authz";
+import { prisma } from "../src/backend/shared/prisma";
+import { canPerform } from "../src/backend/modules/auth/authz";
 
 async function verifyReadAccess(email: string, activeOrgId: string, ticketId: string): Promise<string> {
   const user = await prisma.user.findUnique({

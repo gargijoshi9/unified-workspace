@@ -1,7 +1,7 @@
-import { auth } from "@/backend/auth";
-import { prisma } from "@/backend/lib/prisma";
-import { canPerform, UserSession } from "@/backend/lib/authz";
-import { logAudit } from "@/backend/lib/audit";
+import { auth } from "@/backend/modules/auth/auth";
+import { prisma } from "@/backend/shared/prisma";
+import { canPerform, UserSession } from "@/backend/modules/auth/authz";
+import { logAudit } from "@/backend/modules/audit/audit";
 import { NextResponse } from "next/server";
 import { ConnectionStatus } from "@prisma/client";
 

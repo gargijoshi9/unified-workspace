@@ -1,1 +1,1 @@
-export { createComment as POST } from "@/backend/controllers/ticketsController";
+export { createComment as POST } from "@/backend/modules/ticket/ticketsController";
