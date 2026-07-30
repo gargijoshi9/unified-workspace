@@ -1,49 +1,32 @@
 # System Architecture & Diagrams
 
 ## 1. High-Level System Architecture Diagram
-*(Shared Identity/Org Service, Dashboard 1: Support Hub, Dashboard 2: Code Review Console, PostgreSQL, and Redis Cache)*
+*(User → Auth/Identity Layer → [Support Hub | Review Console] → Shared Postgres DB with Redis and Audit Log side components)*
 
 ```mermaid
 flowchart TD
-    subgraph Client Layer
-        User([Enterprise User / Browser])
-    end
-
-    subgraph Shared Identity & Governance Service
-        NextAuth[Shared Auth Engine & Session Manager]
-        OrgSwitcher[Organization & Context Switcher]
-        RBACGuard[Centralized RBAC & BOLA Guard - canPerform]
-    end
-
-    subgraph Unified Application Dashboards
-        Dash1[Dashboard 1: Support Hub - /support]
-        Dash2[Dashboard 2: Code Review Console - /review]
-    end
-
-    subgraph Data & Cache Storage
-        Postgres[(Shared PostgreSQL DB - Multi-Tenant Schemas)]
-        Redis[(Upstash Redis Cache - Session Versioning & Token Revocation)]
-        AuditLog[(Append-Only Audit Log Engine)]
-    end
-
-    User -->|1. Authentication & Active Org Token| NextAuth
-    NextAuth <-->|2. Session Version Sync & Invalidation| Redis
-    User -->|3. Organization Switch Request| OrgSwitcher
+    User([User / Browser]) -->|HTTPS + NextAuth Cookie| AuthLayer[Shared Auth & Identity Layer]
     
-    NextAuth -->|Authenticated Request| Dash1
-    NextAuth -->|Authenticated Request| Dash2
+    subgraph Frontend & Middleware Boundaries
+        AuthLayer -->|Validate Session Version| Redis[(Upstash Redis Cache)]
+        AuthLayer -->|Active Org Context| Dashboards{Dashboard Routing}
+        Dashboards -->|/support| SupportHub[Support Hub Dashboard]
+        Dashboards -->|/review| ReviewConsole[Code Review Console]
+    end
 
-    Dash1 & Dash2 -->|4. Authorize Request| RBACGuard
-    RBACGuard -->|5. Tenant-Scoped Query| Postgres
-    RBACGuard -->|6. Record Mutation Event| AuditLog
-    AuditLog -->|Append-Only| Postgres
+    subgraph Service & Control Flow
+        SupportHub & ReviewConsole -->|1. Request Action| Controller[Module Controllers]
+        Controller -->|2. Check Permission canPerform| Authorize[RBAC Engine & Policy Guard]
+        Authorize -->|3. Scoped Repository Query| Repository[Modular Repositories]
+        Repository -->|4. Execute Read/Write| Postgres[(PostgreSQL Database)]
+        Repository -->|5. Append Audit Event| AuditLog[(Append-Only Audit Log)]
+    end
 
     style User fill:#0F1115,stroke:#8A9992,color:#F5F4F1
-    style NextAuth fill:#55443A,stroke:#8A9992,color:#F5F4F1
-    style Dash1 fill:#181B20,stroke:#8A9992,color:#F5F4F1
-    style Dash2 fill:#181B20,stroke:#8A9992,color:#F5F4F1
+    style AuthLayer fill:#55443A,stroke:#8A9992,color:#F5F4F1
     style Redis fill:#4D2308,stroke:#C68B59,color:#F5F4F1
-    style Postgres fill:#181B20,stroke:#709775,color:#F5F4F1
+    style Postgres fill:#181B20,stroke:#8A9992,color:#F5F4F1
+    style AuditLog fill:#181B20,stroke:#709775,color:#F5F4F1
 ```
 
 ---
@@ -137,6 +120,7 @@ flowchart LR
 
 ## Data Flow & Control Architecture Explanation
 
-1. **Authentication & Session Synchronization**: Users authenticate via the Shared Identity Service. NextAuth issues a signed JWT containing active organization memberships and `sessionVersion`. Every API request compares the token's version against Redis; logging out increments the Redis counter, instantly invalidating sessions across both **Dashboard 1** and **Dashboard 2**.
-2. **RBAC & BOLA Isolation**: All route handlers enforce centralized authorization through `canPerform(user, action, context)`. Queries are automatically scoped by `activeOrgId`. Cross-org items (shared tickets or PRs) require an active `APPROVED` connection in `OrgConnection` to prevent Broken Object Level Authorization (BOLA).
-3. **Append-Only Immutable Audit Trail**: System mutations (creating tickets, approving PRs, updating statuses, or sharing resources) trigger an automatic, append-only record in PostgreSQL storing actor details, target resource IDs, action type, and timestamps.
+1. **Authentication & Session Validation**: When a user makes a request, NextAuth validates the JWT against the shared identity service and compares the token's `sessionVersion` with Redis to ensure immediate cross-dashboard revocation if logged out.
+2. **Role-Based Access Control (`canPerform`)**: Every controller invokes `canPerform(user, action, context)` to evaluate the user's role in their active organization (`ORG_ADMIN`, `SUPPORT_AGENT`, `REVIEWER_APPROVER`, `CROSS_ORG_GUEST`, or `PLATFORM_SUPER_ADMIN`) before executing domain logic.
+3. **Tenant-Scoped Repository Queries**: Domain services query PostgreSQL strictly through modular repositories, automatically scoping query filters by `orgId` or explicitly verifying cross-org share permissions (`OrgConnection` status `APPROVED`) to eliminate Broken Object Level Authorization (BOLA).
+4. **Append-Only Audit Logging**: All state-mutating actions (ticket creation, PR review decisions, sharing events) automatically emit an immutable audit log record to PostgreSQL with actor, action type, timestamp, and target resource metadata.
