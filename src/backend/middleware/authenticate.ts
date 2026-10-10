@@ -11,7 +11,7 @@ export type AuthenticatedHandler = (
 export function withAuth(handler: AuthenticatedHandler) {
   return async (req: Request, ...args: unknown[]) => {
     const session = await auth();
-    if (!session || !session.user?.activeOrgId) {
+    if (!session || (session as any).error === "RevokedSession" || !session.user || !session.user.activeOrgId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

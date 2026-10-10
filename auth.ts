@@ -1,1 +1,1 @@
-export { handlers, signIn, signOut, auth } from "@/src/backend/modules/auth/auth.service";
+export { handlers, signIn, signOut, auth, setTestSession } from "@/src/backend/modules/auth/auth.service";

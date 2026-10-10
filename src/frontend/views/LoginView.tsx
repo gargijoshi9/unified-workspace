@@ -3,6 +3,7 @@
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -63,6 +64,15 @@ export default function LoginPage() {
         <button type="submit" className="w-full bg-black hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black font-medium rounded-lg p-2.5 text-sm transition-colors cursor-pointer">
           Sign In
         </button>
+
+        <div className="pt-2 text-center">
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            Need an organization workspace?{" "}
+            <Link href="/register" className="font-medium text-zinc-900 dark:text-zinc-100 hover:underline">
+              Create account
+            </Link>
+          </p>
+        </div>
         
         <div className="pt-2 border-t border-gray-100 dark:border-zinc-800">
           <p className="text-xs text-zinc-400 dark:text-zinc-500">
