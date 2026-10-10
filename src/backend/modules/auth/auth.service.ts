@@ -37,7 +37,7 @@ export async function validateCredentials(credentials: Record<string, unknown>) 
   };
 }
 
-const nextAuth = NextAuth({
+export const { handlers, signIn, signOut, auth } = NextAuth({
   session: { strategy: "jwt" },
   providers: [
     Credentials({
@@ -61,25 +61,4 @@ const nextAuth = NextAuth({
     signIn: "/login",
   },
 });
-
-let testSessionOverride: Session | null | undefined = undefined;
-
-/**
- * Test helper to simulate sessions in server-side tests.
- * Passing `null` simulates unauthenticated requests.
- * Passing `undefined` clears the override.
- */
-export function setTestSession(session: Session | null | undefined) {
-  testSessionOverride = session;
-}
-
-export const { handlers, signIn, signOut } = nextAuth;
-
-export const auth = async (...args: Parameters<typeof nextAuth.auth>) => {
-  if (testSessionOverride !== undefined && (args.length === 0 || typeof args[0] !== "function")) {
-    return testSessionOverride;
-  }
-  return (nextAuth.auth as (...a: unknown[]) => Promise<Session | null>)(...args);
-};
-
 export type { Session } from "next-auth";
