@@ -11,7 +11,8 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "npx tsx tests/bola-tickets.ts && npx tsx tests/bola-prs.ts && npx tsx tests/bola-digests.ts && npx tsx tests/rbac.test.ts && npx tsx tests/session-sync.test.ts && npx tsx tests/token-revocation.test.ts && npx tsx tests/audit.test.ts"
+    "test": "npx tsx tests/tenant-isolation.test.ts && npx tsx tests/bola-tickets.ts && npx tsx tests/bola-prs.ts && npx tsx tests/bola-digests.ts && npx tsx tests/rbac.test.ts && npx tsx tests/session-sync.test.ts && npx tsx tests/token-revocation.test.ts && npx tsx tests/audit.test.ts",
+    "test:isolation": "npx tsx tests/tenant-isolation.test.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
