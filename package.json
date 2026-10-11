@@ -11,7 +11,7 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --no-warnings --import tsx tests/auth-security.test.ts && node --no-warnings --import tsx tests/tenant-isolation.test.ts && node --no-warnings --import tsx tests/bola-tickets.ts && node --no-warnings --import tsx tests/bola-prs.ts && node --no-warnings --import tsx tests/bola-digests.ts && node --no-warnings --import tsx tests/rbac.test.ts && node --no-warnings --import tsx tests/session-sync.test.ts && node --no-warnings --import tsx tests/token-revocation.test.ts && node --no-warnings --import tsx tests/audit.test.ts"
+    "test": "node --no-warnings --import tsx tests/auth-security.test.ts && node --no-warnings --import tsx tests/tenant-isolation.test.ts && node --no-warnings --import tsx tests/bola-tickets.ts && node --no-warnings --import tsx tests/bola-prs.ts && node --no-warnings --import tsx tests/bola-digests.ts && node --no-warnings --import tsx tests/rbac.test.ts && node --no-warnings --import tsx tests/session-sync.test.ts && node --no-warnings --import tsx tests/token-revocation.test.ts && node --no-warnings --import tsx tests/audit.test.ts && node --no-warnings --import tsx tests/member-management.test.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

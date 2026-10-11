@@ -144,9 +144,9 @@ export default function PRListView() {
   const activeMembership = user.memberships?.find((m: any) => m.orgId === activeOrgId);
   const userRole = activeMembership?.role || "N/A";
 
-  // Check if user is allowed to create PR (Admin or Reviewer)
   const canCreate = userRole === "ORG_ADMIN" || userRole === "REVIEWER_APPROVER" || userRole === "PLATFORM_SUPER_ADMIN";
   const canViewAudit = userRole === "ORG_ADMIN" || userRole === "REVIEWER_APPROVER" || userRole === "PLATFORM_SUPER_ADMIN";
+  const canManageSettings = userRole === "ORG_ADMIN" || userRole === "PLATFORM_SUPER_ADMIN";
 
   // Filtered PRs list
   const filteredPRs = prs.filter((p) => {
@@ -205,6 +205,15 @@ export default function PRListView() {
           </div>
 
           <div className="flex gap-3">
+            {canManageSettings && (
+              <Link
+                href="/settings"
+                className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 dark:border-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-900 font-medium rounded-xl text-sm transition-all"
+              >
+                <Settings className="w-4 h-4" />
+                Settings & Team
+              </Link>
+            )}
             {canViewAudit && (
               <Link
                 href="/review/audit"

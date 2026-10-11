@@ -135,6 +135,7 @@ export default function Navbar() {
   const userRole = activeMembership?.role || "N/A";
 
   const isViewAuditAllowed = userRole === "ORG_ADMIN" || userRole === "REVIEWER_APPROVER" || userRole === "PLATFORM_SUPER_ADMIN";
+  const isSettingsAllowed = userRole === "ORG_ADMIN" || userRole === "PLATFORM_SUPER_ADMIN";
 
   return (
     <nav className="sticky top-0 z-40 w-full bg-[#0F1115]/90 backdrop-blur-md border-b border-[rgba(207,208,205,0.15)] transition-colors duration-300">
@@ -174,6 +175,16 @@ export default function Navbar() {
                 }`}
               >
                 Security & Audit
+              </Link>
+            )}
+            {isSettingsAllowed && (
+              <Link 
+                href="/settings" 
+                className={`hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors ${
+                  pathname.startsWith("/settings") ? "text-zinc-900 dark:text-zinc-100 font-bold" : ""
+                }`}
+              >
+                Settings & Team
               </Link>
             )}
           </div>
@@ -269,6 +280,19 @@ export default function Navbar() {
               </div>
             )}
           </div>
+
+          {/* Settings Shortcut Link */}
+          {isSettingsAllowed && (
+            <Link
+              href="/settings"
+              className={`p-2 text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl transition-all active:scale-95 cursor-pointer ${
+                pathname.startsWith("/settings") ? "text-zinc-900 dark:text-zinc-100 bg-zinc-100 dark:bg-zinc-800" : ""
+              }`}
+              title="Organization Settings & Team Members"
+            >
+              <Settings className="w-4 h-4" />
+            </Link>
+          )}
 
           {/* User Signout Link */}
           <button

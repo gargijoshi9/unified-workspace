@@ -4,7 +4,7 @@ import { useSession, signOut } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { LayoutDashboard, Users, ShieldAlert, ArrowRightLeft, LogOut, ArrowRight, Settings } from "lucide-react";
+import { LayoutDashboard, Users, ShieldAlert, ArrowRightLeft, LogOut, ArrowRight, Settings, UserPlus } from "lucide-react";
 import Navbar from "@/frontend/components/Navbar";
 
 export default function Home() {
@@ -132,32 +132,67 @@ export default function Home() {
         )}
 
         {/* Hub / Navigation Links */}
-        <div className="pt-5 border-t border-gray-100 dark:border-zinc-800 flex flex-col sm:flex-row gap-4">
-          <Link
-            href="/support"
-            className="flex-1 flex items-center justify-between px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl text-sm transition-all shadow-md shadow-blue-500/10 hover:shadow-blue-500/20 active:scale-95 group"
-          >
-            <div className="flex items-center gap-2">
-              <Users className="w-4 h-4" />
-              <span>Support Hub</span>
+        <div className="pt-5 border-t border-gray-100 dark:border-zinc-800 space-y-3">
+          <p className="text-xs font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">
+            Workspace Hubs & Operations
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <Link
+              href="/support"
+              className="flex items-center justify-between px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl text-sm transition-all shadow-md shadow-blue-500/10 hover:shadow-blue-500/20 active:scale-95 group"
+            >
+              <div className="flex items-center gap-2">
+                <Users className="w-4 h-4" />
+                <span>Support Hub</span>
+              </div>
+              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+            </Link>
+            <Link
+              href="/review"
+              className="flex items-center justify-between px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-xl text-sm transition-all shadow-md shadow-purple-500/10 hover:shadow-purple-500/20 active:scale-95 group"
+            >
+              <div className="flex items-center gap-2">
+                <ShieldAlert className="w-4 h-4" />
+                <span>Review Console</span>
+              </div>
+              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+            </Link>
+          </div>
+
+          {/* Organization Settings & Team Members Card (for ORG_ADMIN & SUPER_ADMIN) */}
+          {(activeMembership?.role === "ORG_ADMIN" || activeMembership?.role === "PLATFORM_SUPER_ADMIN") ? (
+            <Link
+              href="/settings"
+              className="flex items-center justify-between px-4 py-3.5 bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-white text-white dark:text-zinc-900 font-medium rounded-xl text-sm transition-all shadow-lg active:scale-95 group"
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-zinc-800 dark:bg-zinc-200 rounded-lg shrink-0">
+                  <UserPlus className="w-4 h-4 text-emerald-400 dark:text-emerald-600" />
+                </div>
+                <div className="text-left">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-sm">Team Members & Settings</span>
+                    <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 dark:text-emerald-700 font-bold">
+                      Admin
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-zinc-400 dark:text-zinc-500 font-normal">
+                    Invite members, manage roles, deactivate accounts & feature flags
+                  </p>
+                </div>
+              </div>
+              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1 shrink-0 ml-2" />
+            </Link>
+          ) : (
+            <div className="p-3 bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200/60 dark:border-zinc-800 rounded-xl text-xs text-zinc-500 dark:text-zinc-400">
+              <span>Notice: Team member management requires an <strong>ORG_ADMIN</strong> account (e.g. <code className="text-zinc-700 dark:text-zinc-300 font-mono">admin@acme.com</code>). Currently signed in as <strong>{activeMembership?.role}</strong>.</span>
             </div>
-            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-          </Link>
-          <Link
-            href="/review"
-            className="flex-1 flex items-center justify-between px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-xl text-sm transition-all shadow-md shadow-purple-500/10 hover:shadow-purple-500/20 active:scale-95 group"
-          >
-            <div className="flex items-center gap-2">
-              <ShieldAlert className="w-4 h-4" />
-              <span>Review & Audit Console</span>
-            </div>
-            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-          </Link>
+          )}
         </div>
 
         {/* Audit Log link for Admins and Reviewers */}
         {(activeMembership?.role === "ORG_ADMIN" || activeMembership?.role === "REVIEWER_APPROVER" || activeMembership?.role === "PLATFORM_SUPER_ADMIN") && (
-          <div className="pt-4 flex justify-center">
+          <div className="pt-2 flex justify-center">
             <Link
               href="/review/audit"
               className="text-xs text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 transition-colors flex items-center gap-1 font-semibold"

@@ -5,12 +5,12 @@ import { PermissionAction } from "./auth.types";
 export const rolePermissions: Record<Role, PermissionAction[]> = {
   [Role.PLATFORM_SUPER_ADMIN]: [
     "create_ticket", "read_ticket", "edit_ticket", "delete_ticket", "comment_ticket", "share_ticket",
-    "manage_feature_flags", "create_pr", "read_pr", "edit_pr", "assign_reviewer", "submit_decision", "merge_pr", "share_pr",
+    "manage_feature_flags", "manage_members", "create_pr", "read_pr", "edit_pr", "assign_reviewer", "submit_decision", "merge_pr", "share_pr",
     "view_audit_logs"
   ],
   [Role.ORG_ADMIN]: [
     "create_ticket", "read_ticket", "edit_ticket", "delete_ticket", "comment_ticket", "share_ticket",
-    "manage_feature_flags", "create_pr", "read_pr", "edit_pr", "assign_reviewer", "submit_decision", "merge_pr", "share_pr",
+    "manage_feature_flags", "manage_members", "create_pr", "read_pr", "edit_pr", "assign_reviewer", "submit_decision", "merge_pr", "share_pr",
     "view_audit_logs"
   ],
   [Role.SUPPORT_AGENT]: [
