@@ -184,13 +184,13 @@ export default function SupportHub() {
           </div>
 
           <div className="flex gap-3">
-            {userRole === "ORG_ADMIN" && (
+            {(userRole === "ORG_ADMIN" || userRole === "PLATFORM_SUPER_ADMIN") && (
               <Link
                 href="/settings"
                 className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 dark:border-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-900 font-medium rounded-xl text-sm transition-all"
               >
                 <Settings className="w-4 h-4" />
-                Settings
+                Settings & Team
               </Link>
             )}
             {canCreate && (

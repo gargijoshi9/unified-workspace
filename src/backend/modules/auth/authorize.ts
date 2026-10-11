@@ -54,6 +54,9 @@ export function canPerform(
     case "manage_feature_flags":
       return true; // Simple RBAC check passed
 
+    case "manage_members":
+      return true; // Simple RBAC check passed
+
     case "create_pr":
       return true; // Simple RBAC check passed
 

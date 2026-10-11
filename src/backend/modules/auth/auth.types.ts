@@ -8,6 +8,7 @@ export type PermissionAction =
   | "comment_ticket"
   | "share_ticket"
   | "manage_feature_flags"
+  | "manage_members"
   | "create_pr"
   | "read_pr"
   | "edit_pr"

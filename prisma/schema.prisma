@@ -21,6 +21,7 @@ model User {
   reviews        PRReviewer[]
   auditLogs      AuditLog[]
   digests        Digest[]
+  invitationsSent Invitation[] @relation("InvitationSender")
 }
 
 model Org {
@@ -40,6 +41,7 @@ model Org {
   sharedTickets TicketShare[]   @relation("SharedWithOrg")
   sharedPRs     PRShare[]       @relation("SharedWithOrg")
   digests       Digest[]
+  invitations   Invitation[]
 }
 
 enum Role {
@@ -51,15 +53,45 @@ enum Role {
 }
 
 model Membership {
-  id     String @id @default(cuid())
-  userId String
-  orgId  String
-  role   Role
+  id        String   @id @default(cuid())
+  userId    String
+  orgId     String
+  role      Role
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
 
-  user User @relation(fields: [userId], references: [id])
-  org  Org  @relation(fields: [orgId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  org  Org  @relation(fields: [orgId], references: [id], onDelete: Cascade)
 
   @@unique([userId, orgId]) // one role per user per org
+  @@index([orgId, isActive])
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  CANCELLED
+  EXPIRED
+}
+
+model Invitation {
+  id          String           @id @default(cuid())
+  orgId       String
+  email       String
+  name        String?
+  role        Role
+  tokenHash   String           @unique
+  invitedById String
+  status      InvitationStatus @default(PENDING)
+  expiresAt   DateTime
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  org       Org  @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  invitedBy User @relation("InvitationSender", fields: [invitedById], references: [id], onDelete: Cascade)
+
+  @@index([orgId, status])
+  @@index([email])
 }
 
 model FeatureFlag {

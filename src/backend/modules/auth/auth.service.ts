@@ -15,7 +15,10 @@ export async function validateCredentials(credentials: Record<string, unknown>) 
   const user = await prisma.user.findUnique({
     where: { email: normalizedEmail },
     include: {
-      memberships: { include: { org: true } },
+      memberships: {
+        where: { isActive: true },
+        include: { org: true },
+      },
     },
   });
 
